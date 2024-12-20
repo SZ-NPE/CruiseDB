@@ -2159,6 +2159,13 @@ void DBImpl::BGWorkFlush(void* arg) {
 
   IOSTATS_SET_THREAD_POOL_ID(fta.thread_pri_);
   TEST_SYNC_POINT("DBImpl::BGWorkFlush");
+#if defined(_GNU_SOURCE) && defined(__GLIBC_PREREQ)
+#if __GLIBC_PREREQ(2, 12)
+  // Set the thread name to aid debugging
+  std::string thread_name = "Tag:Flush";
+  pthread_setname_np(pthread_self(), thread_name.c_str());
+#endif
+#endif
   static_cast_with_check<DBImpl, DB>(fta.db_)->BackgroundCallFlush(
       fta.thread_pri_);
   TEST_SYNC_POINT("DBImpl::BGWorkFlush:done");
@@ -2169,6 +2176,13 @@ void DBImpl::BGWorkCompaction(void* arg) {
   delete reinterpret_cast<CompactionArg*>(arg);
   IOSTATS_SET_THREAD_POOL_ID(Env::Priority::LOW);
   TEST_SYNC_POINT("DBImpl::BGWorkCompaction");
+#if defined(_GNU_SOURCE) && defined(__GLIBC_PREREQ)
+#if __GLIBC_PREREQ(2, 12)
+  // Set the thread name to aid debugging
+  std::string thread_name = "Tag:Compaction";
+  pthread_setname_np(pthread_self(), thread_name.c_str());
+#endif
+#endif
   auto prepicked_compaction =
       static_cast<PrepickedCompaction*>(ca.prepicked_compaction);
   static_cast_with_check<DBImpl, DB>(ca.db)->BackgroundCallCompaction(
@@ -2181,6 +2195,13 @@ void DBImpl::BGWorkBottomCompaction(void* arg) {
   delete static_cast<CompactionArg*>(arg);
   IOSTATS_SET_THREAD_POOL_ID(Env::Priority::BOTTOM);
   TEST_SYNC_POINT("DBImpl::BGWorkBottomCompaction");
+#if defined(_GNU_SOURCE) && defined(__GLIBC_PREREQ)
+#if __GLIBC_PREREQ(2, 12)
+  // Set the thread name to aid debugging
+  std::string thread_name = "Tag:Bottom";
+  pthread_setname_np(pthread_self(), thread_name.c_str());
+#endif
+#endif
   auto* prepicked_compaction = ca.prepicked_compaction;
   assert(prepicked_compaction && prepicked_compaction->compaction &&
          !prepicked_compaction->manual_compaction_state);
@@ -2400,6 +2421,12 @@ void DBImpl::BackgroundCallCompaction(PrepickedCompaction* prepicked_compaction,
 
     num_running_compactions_++;
 
+#ifdef DB_STATS_RECORD
+    ROCKS_LOG_INFO(immutable_db_options_.info_log,
+                   "[DB STATS] num_running_compactions_: %d",
+                   num_running_compactions_);
+#endif
+
     std::unique_ptr<std::list<uint64_t>::iterator>
         pending_outputs_inserted_elem(new std::list<uint64_t>::iterator(
             CaptureCurrentFileNumberInPendingOutputs()));
@@ -2470,6 +2497,11 @@ void DBImpl::BackgroundCallCompaction(PrepickedCompaction* prepicked_compaction,
 
     assert(num_running_compactions_ > 0);
     num_running_compactions_--;
+#ifdef DB_STATS_RECORD
+    ROCKS_LOG_INFO(immutable_db_options_.info_log,
+                   "[DB STATS] num_running_compactions_: %d",
+                   num_running_compactions_);
+#endif
     if (bg_thread_pri == Env::Priority::LOW) {
       bg_compaction_scheduled_--;
     } else {

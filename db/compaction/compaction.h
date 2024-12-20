@@ -165,8 +165,8 @@ class Compaction {
   }
 
   // Whether need to write output file to second DB path.
-  // uint32_t output_path_id() const { return output_path_id_; }
-  uint32_t output_path_id() const { return 1; }
+  uint32_t output_path_id() const { return output_path_id_; }
+  // uint32_t output_path_id() const { return 1; }
 
   // Is this a trivial compaction that can be implemented by just
   // moving a single input file to the next level (no merging or splitting)

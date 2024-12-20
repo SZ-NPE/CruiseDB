@@ -585,6 +585,9 @@ set(SOURCES
         db/write_batch_base.cc
         db/write_controller.cc
         db/write_thread.cc
+        db/token_bucket.cc
+        db/io_controller.cc
+        db/rate_estimater.cc
         env/env.cc
         env/env_chroot.cc
         env/env_encryption.cc
@@ -1204,15 +1207,15 @@ if(WITH_BENCHMARK_TOOLS)
   target_link_libraries(range_del_aggregator_bench
     ${ROCKSDB_LIB})
 
-  add_executable(table_reader_bench
-    table/table_reader_bench.cc)
-  target_link_libraries(table_reader_bench
-    ${ROCKSDB_LIB} testharness)
+  # add_executable(table_reader_bench
+  #   table/table_reader_bench.cc)
+  # target_link_libraries(table_reader_bench
+  #   ${ROCKSDB_LIB} testharness)
 
-  add_executable(filter_bench
-    util/filter_bench.cc)
-  target_link_libraries(filter_bench
-    ${ROCKSDB_LIB})
+  # add_executable(filter_bench
+  #   util/filter_bench.cc)
+  # target_link_libraries(filter_bench
+  #   ${ROCKSDB_LIB})
 
   add_executable(hash_table_bench
     utilities/persistent_cache/hash_table_bench.cc)
@@ -1228,8 +1231,8 @@ if(WITH_CORE_TOOLS OR WITH_TOOLS)
     DEPENDS ${core_tool_deps})
 endif()
 
-if(WITH_TOOLS)
-  add_subdirectory(db_stress_tool)
-  add_custom_target(tools
-    DEPENDS ${tool_deps})
-endif()
+# if(WITH_TOOLS)
+#   add_subdirectory(db_stress_tool)
+#   add_custom_target(tools
+#     DEPENDS ${tool_deps})
+# endif()
